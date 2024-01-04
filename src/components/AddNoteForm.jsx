@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { addNote } from "../utils/local-data";
+import { addNote } from "../utils/utils";
 import { useNavigate } from "react-router-dom";
 
 const AddNoteForm = () => {
@@ -7,14 +7,19 @@ const AddNoteForm = () => {
   const [newNote, setNewNote] = useState({ title: "", body: "" });
   const maxTitleLength = 50;
 
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (newNote.title && newNote.body) {
-      addNote({
+      const { error } = await addNote({
         title: newNote.title,
         body: newNote.body,
       });
-      setNewNote({ title: "", body: "" });
-      navigate("/");
+
+      if (!error) {
+        setNewNote({ title: "", body: "" });
+        navigate("/");
+      } else {
+        console.error("Gagal menambahkan catatan");
+      }
     }
   };
 

@@ -1,11 +1,28 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import { getAllNotes, deleteNote, archiveNote } from "../utils/local-data";
+import { getActiveNotes, deleteNote, archiveNote } from "../utils/utils";
 
-const NoteBody = ({ searchKeyword, setSearchKeyword, notes, setNotes }) => {
+const NoteBody = ({
+  searchKeyword,
+  setSearchKeyword,
+  notes,
+  setNotes,
+  onDeleteNote,
+  onArchiveNote,
+}) => {
   useEffect(() => {
-    setNotes(getAllNotes());
+    const fetchNotes = async () => {
+      const { error, data } = await getActiveNotes();
+
+      if (!error) {
+        setNotes(data || []);
+      } else {
+        console.error("Gagal mengambil catatan");
+      }
+    };
+
+    fetchNotes();
   }, []);
 
   const filteredNotes = notes.filter(
@@ -14,14 +31,24 @@ const NoteBody = ({ searchKeyword, setSearchKeyword, notes, setNotes }) => {
       !note.archived
   );
 
-  const handleDeleteNote = (id) => {
-    deleteNote(id);
-    setNotes(getAllNotes());
+  const handleDeleteNote = async (id) => {
+    const { error } = await deleteNote(id);
+
+    if (!error) {
+      onDeleteNote(id);
+    } else {
+      console.error("Gagal menghapus catatan");
+    }
   };
 
-  const handleArchiveNote = (id) => {
-    archiveNote(id);
-    setNotes(getAllNotes());
+  const handleArchiveNote = async (id) => {
+    const { error } = await archiveNote(id);
+
+    if (!error) {
+      onArchiveNote(id);
+    } else {
+      console.error("Gagal mengarsipkan catatan");
+    }
   };
 
   return (
@@ -86,6 +113,8 @@ NoteBody.propTypes = {
   setSearchKeyword: PropTypes.func.isRequired,
   notes: PropTypes.array.isRequired,
   setNotes: PropTypes.func.isRequired,
+  onDeleteNote: PropTypes.func.isRequired,
+  onArchiveNote: PropTypes.func.isRequired,
 };
 
 export default NoteBody;

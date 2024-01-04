@@ -1,11 +1,25 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getNote } from "../utils/local-data";
+import { getNote } from "../utils/utils";
 import Header from "../components/Header";
 
 const NoteDetail = () => {
   const { id } = useParams();
-  const note = getNote(id);
+  const [note, setNote] = useState(null);
+
+  useEffect(() => {
+    const fetchNote = async () => {
+      const { error, data } = await getNote(id);
+
+      if (!error) {
+        setNote(data);
+      } else {
+        console.error("Gagal mengambil detail catatan");
+      }
+    };
+
+    fetchNote();
+  }, [id]);
 
   if (!note) {
     return <p>Catatan tidak ditemukan.</p>;

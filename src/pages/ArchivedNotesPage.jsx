@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getArchivedNotes, deleteNote } from "../utils/local-data";
+import { getArchivedNotes, deleteNote, unarchiveNote } from "../utils/utils";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 
@@ -7,12 +7,35 @@ const ArchivedNotesPage = () => {
   const [archivedNotes, setArchivedNotes] = useState([]);
 
   useEffect(() => {
-    setArchivedNotes(getArchivedNotes());
+    const fetchArchivedNotes = async () => {
+      const { error, data } = await getArchivedNotes();
+
+      if (!error) {
+        setArchivedNotes(data);
+      } else {
+        console.error("Gagal mengambil catatan diarsipkan");
+      }
+    };
+
+    fetchArchivedNotes();
   }, []);
 
-  const handleDeleteNote = (id) => {
-    deleteNote(id);
-    setArchivedNotes(getArchivedNotes());
+  const handleActionNote = async (id, action) => {
+    let result = null;
+
+    if (action === "delete") {
+      result = await deleteNote(id);
+    } else if (action === "unarchive") {
+      result = await unarchiveNote(id);
+    }
+
+    if (!result?.error) {
+      setArchivedNotes((prevNotes) =>
+        prevNotes.filter((note) => note.id !== id)
+      );
+    } else {
+      console.error("gagal");
+    }
   };
 
   return (
@@ -33,8 +56,14 @@ const ArchivedNotesPage = () => {
                 </div>
                 <div className="note-item__action">
                   <button
+                    className="note-item__unarchive-button"
+                    onClick={() => handleActionNote(note.id, "unarchive")}
+                  >
+                    Aktifkan
+                  </button>
+                  <button
                     className="note-item__delete-button"
-                    onClick={() => handleDeleteNote(note.id)}
+                    onClick={() => handleActionNote(note.id, "delete")}
                   >
                     Hapus
                   </button>
